@@ -1,0 +1,12 @@
+#!/bin/sh
+# {{ ansible_managed }}
+
+if monit report down | grep -q 0; then
+    tput -T xterm setaf 2 # green
+else
+    tput -T xterm setaf 1 # red
+fi
+
+monit summary
+
+tput -T xterm sgr0 # clear fg color

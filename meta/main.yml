@@ -1,0 +1,16 @@
+---
+dependencies:
+- role: mmcnl.monit_handlers
+- role: mmcnl.nullmailer
+
+galaxy_info:
+  role_name: monit_base
+  author: mmcnl
+  description: "set up monit"
+  license: MIT
+  min_ansible_version: 2.7
+  platforms:
+    - name: Ubuntu
+      versions:
+        - bionic
+  galaxy_tags: []

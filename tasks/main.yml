@@ -1,0 +1,55 @@
+---
+- name: install monit
+  apt:
+    pkg:
+      - monit
+    cache_valid_time: 86400 # 1 day
+
+- name: remove non-standard config dir
+  file:
+    path: /etc/monit/monitrc.d
+    state: absent
+
+- name: remove init.d monit service
+  file:
+    path: /etc/init.d/monit
+    state: absent
+
+- name: set up monitrc control file
+  template:
+    src: monitrc.j2
+    dest: /etc/monit/monitrc
+    mode: 0600
+  notify: reload monit
+
+- name: Set up monit systemd service
+  template:
+    src: monit.service.j2
+    dest: /lib/systemd/system/monit.service
+  notify: reload monit
+
+- name: Ensure monit service always running
+  systemd:
+    name: monit
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Create cron job to email an alert if monit not running
+  template:
+    src: monit_health_check.j2
+    dest: /usr/local/bin/monit_health_check
+    mode: 0744
+
+- name: Schedule monit health check
+  cron:
+    name: monit_health_check
+    minute: "*/5" # every 5 minutes
+    # use cronic to email if healthcheck itself fails
+    job: MAILTO={{ monit_admin_email }} /usr/local/bin/cronic /usr/local/bin/monit_health_check
+
+- name: add monit report to motd
+  template:
+    src: motd-51-monit.j2
+    dest: /etc/update-motd.d/51-monit
+    mode: 0744

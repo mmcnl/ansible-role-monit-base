@@ -1,0 +1,15 @@
+#!/bin/bash
+# {{ ansible_managed }}
+
+set -o errexit -o nounset
+echo "$0:"
+
+if ps aux | grep -v grep | grep -wq 'monit'; then
+    echo "monit is running"
+    exit 0
+else
+    echo "monit is not running"
+fi
+
+# otherwise email an alert (with the results of a monit syntax check)
+monit -t 2>&1 | mail -s 'monit is dead' {{ monit_admin_email }}

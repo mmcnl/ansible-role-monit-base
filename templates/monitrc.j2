@@ -1,0 +1,36 @@
+# -*- mode: conf -*-
+# {{ ansible_managed }}
+
+set daemon 60 with start delay 30 # perform checks every minute; wait 30 seconds
+                                  # before starting polling services to prevent
+                                  # false alarms after restarts
+set log /var/log/monit.log
+set idfile /var/lib/monit/id
+set statefile /var/lib/monit/state
+# save events in case mail is not working
+set eventqueue with basedir /var/lib/monit/events and slots 100
+
+set httpd unixsocket /var/run/monit.sock
+  allow monit:monit
+
+set mailserver {{ monit_smtp_server }} port {{ monit_smtp_port }}
+  username "{{ monit_smtp_user }}" password "{{ monit_smtp_password }}"
+  {% if 'gmail' in monit_smtp_server %}
+  using tlsv1
+  {% endif %}
+  with timeout 30 seconds
+
+set mail-format {
+From: monit@$HOST
+Subject: [$HOST] $SERVICE: $EVENT
+Message: $DESCRIPTION
+
+[$HOST] $SERVICE: $EVENT
+$DATE
+}
+
+set alert {{ monit_admin_email }}
+  but not on { instance } # don't alert when monit starts/stops
+  with reminder on 1440 cycles # send reminders every 24 hours
+
+include /etc/monit/conf.d/*
