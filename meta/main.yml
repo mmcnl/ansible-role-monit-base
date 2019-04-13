@@ -1,7 +1,5 @@
 ---
-dependencies:
-- role: mmcnl.monit_handlers
-- role: mmcnl.nullmailer
+dependencies: []
 
 galaxy_info:
   role_name: monit_base
