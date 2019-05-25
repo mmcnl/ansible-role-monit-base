@@ -1,12 +1,22 @@
 #!/bin/sh
 # {{ ansible_managed }}
 
-if monit report down | grep -q 0; then
-    tput -T xterm setaf 2 # green
+if systemctl status monit | grep -q running; then
+    if monit report | grep up: | grep -q '100.0%'; then
+        # all services are up
+        uptime=$(monit summary | grep uptime)
+        ok=$(monit report | grep up: | perl -pe 's/\s+/ /g')
+        echo "${uptime}; $(tput -T xterm setaf 2)${ok}"
+    else
+        # at least one service is down, unmonitored, or still initializing, but
+        # colorize red only if something is down
+        monit report down | grep -q '^0$' || tput -T xterm setaf 1 # red
+        monit summary
+    fi
 else
     tput -T xterm setaf 1 # red
+    echo
+    echo "*** MONIT IS NOT RUNNING! ***"
 fi
-
-monit summary
 
 tput -T xterm sgr0 # clear fg color

@@ -44,7 +44,7 @@
 - name: Schedule monit health check
   cron:
     name: monit_health_check
-    minute: "*/5" # every 5 minutes
+    minute: 0 # every hour on the hour
     # use cronic to email if healthcheck itself fails
     job: MAILTO={{ monit_admin_email }} /usr/local/bin/cronic /usr/local/bin/monit_health_check
 
