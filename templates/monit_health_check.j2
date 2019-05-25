@@ -1,15 +1,24 @@
 #!/bin/bash
 # {{ ansible_managed }}
 
-set -o errexit -o nounset
+# check to see if monit is running. send an email alert if it's not running for
+# 2 checks (state is determined by the presence of a tmp file)
+
+set -o nounset
 echo "$0:"
+
+not_running=/tmp/monit_not_running
 
 if systemctl status monit | grep -q running; then
     echo "monit is running"
+    rm -f "$not_running"
     exit 0
 else
     echo "monit is not running"
+    if test -f "$not_running"; then
+        body="first noticed: $(stat -c '%y' /tmp/monit_not_running). syntax check: $(monit -t 2>&1)"
+        echo "$body" | mail -s "monit is dead" {{ monit_admin_email }}
+    else
+        touch "$not_running"
+    fi
 fi
-
-# otherwise email an alert (with the results of a monit syntax check)
-monit -t 2>&1 | mail -s 'monit is dead' {{ monit_admin_email }}
