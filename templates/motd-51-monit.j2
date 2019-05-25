@@ -4,15 +4,15 @@
 if systemctl status monit | grep -q running; then
     if monit report | grep up: | grep -q '100.0%'; then
         # all services are up
-        uptime=$(monit summary | grep uptime)
-        ok=$(monit report | grep up: | perl -pe 's/\s+/ /g')
-        echo "${uptime}; $(tput -T xterm setaf 2)${ok}"
+        tput -T xterm setaf 2 # green
+    elif monit report down | grep -q '^0$'; then
+        # something is neither up nor down
+        tput -T xterm setaf 4 # blue
     else
-        # at least one service is down, unmonitored, or still initializing, but
-        # colorize red only if something is down
-        monit report down | grep -q '^0$' || tput -T xterm setaf 1 # red
-        monit summary
+        # something is down
+        tput -T xterm setaf 1 # red
     fi
+    monit summary
 else
     tput -T xterm setaf 1 # red
     echo
