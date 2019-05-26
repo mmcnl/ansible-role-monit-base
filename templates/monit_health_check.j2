@@ -2,22 +2,29 @@
 # {{ ansible_managed }}
 
 # check to see if monit is running. send an email alert if it's not running for
-# 2 checks (state is determined by the presence of a tmp file)
+# 2 checks (state is determined by the presence of a tmp file). this provides
+# some tolerance for short amounts of downtime (eg during deploys) without an
+# unnecessary alert
 
 set -o nounset
 echo "$0:"
 
-not_running=/tmp/monit_not_running
+not_running=/tmp/monit_not_running_1
+alert_sent=/tmp/monit_not_running_2
 
 if systemctl status monit | grep -q running; then
     echo "monit is running"
-    rm -f "$not_running"
-    exit 0
+    if test -f "$alert_sent"; then
+        body="monit is running again. it was noticed dead $((($(date +%s) - $(stat -c '%Y' $not_running)) / 60)) minutes ago."
+        echo "$body" | mail -s "monit is back" {{ monit_admin_email }}
+    fi
+    rm -f "$not_running" "$alert_sent"
 else
     echo "monit is not running"
     if test -f "$not_running"; then
-        body="first noticed: $(stat -c '%y' /tmp/monit_not_running). syntax check: $(monit -t 2>&1)"
+        body="first noticed monit dead $((($(date +%s) - $(stat -c '%Y' $not_running)) / 60)) minutes ago. syntax check: $(monit -t 2>&1)"
         echo "$body" | mail -s "monit is dead" {{ monit_admin_email }}
+        touch "$alert_sent"
     else
         touch "$not_running"
     fi
