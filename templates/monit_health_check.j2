@@ -11,19 +11,22 @@ echo "$0:"
 
 not_running=/tmp/monit_not_running_1
 alert_sent=/tmp/monit_not_running_2
+time="$(date --iso-8601=seconds)"
 
 if systemctl status monit | grep -q running; then
     echo "monit is running"
+    echo $time
     if test -f "$alert_sent"; then
         body="monit is running again. it was noticed dead $((($(date +%s) - $(stat -c '%Y' $not_running)) / 60)) minutes ago."
-        echo "$body" | mail -s "monit is back" {{ monit_admin_email }}
+        echo -e "$body\n$time" | mail -s "monit is back" {{ monit_admin_email }}
     fi
     rm -f "$not_running" "$alert_sent"
 else
     echo "monit is not running"
+    echo $time
     if test -f "$not_running"; then
         body="first noticed monit dead $((($(date +%s) - $(stat -c '%Y' $not_running)) / 60)) minutes ago. syntax check: $(monit -t 2>&1)"
-        echo "$body" | mail -s "monit is dead" {{ monit_admin_email }}
+        echo -e "$body\n$time" | mail -s "monit is dead" {{ monit_admin_email }}
         touch "$alert_sent"
     else
         touch "$not_running"
