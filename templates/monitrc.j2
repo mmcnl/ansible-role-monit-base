@@ -21,11 +21,11 @@ set mailserver {{ monit_smtp_server }} port {{ monit_smtp_port }}
   {% if 'gmail' in monit_smtp_server %}
   using tlsv1
   {% endif %}
-  with timeout 30 seconds
+  using hostname {{ monit_smtp_sending_domain }}
 {% endif %}
 
 set mail-format {
-From: monit@$HOST
+From: monit@{{ monit_smtp_sending_domain }}
 Subject: [$HOST] $SERVICE: $EVENT
 Message: $DESCRIPTION
 
