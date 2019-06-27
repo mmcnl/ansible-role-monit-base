@@ -1,9 +1,9 @@
 # -*- mode: conf -*-
 # {{ ansible_managed }}
 
-set daemon 60 with start delay 30 # perform checks every minute; wait 30 seconds
-                                  # before starting polling services to prevent
-                                  # false alarms after restarts
+set daemon 60 # perform checks every minute
+  with start delay 10 # wait 10 seconds before starting polling services to prevent false alarms after restarts
+
 set log /var/log/monit.log
 set idfile /var/lib/monit/id
 set statefile /var/lib/monit/state
