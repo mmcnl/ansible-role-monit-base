@@ -24,7 +24,7 @@ if systemctl status monit | grep -q running; then
 else
     echo "monit is not running"
     echo $time
-    if test -f "$not_running"; then
+    if (test -f "$not_running" && ! test -f "$alert_sent"); then
         body="first noticed monit dead $((($(date +%s) - $(stat -c '%Y' $not_running)) / 60)) minutes ago. syntax check: $(monit -t 2>&1)"
         echo -e "$body\n$time" | mail -s "monit is dead" {{ monit_admin_email }}
         touch "$alert_sent"
