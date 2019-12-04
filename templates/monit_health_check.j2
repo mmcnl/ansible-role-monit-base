@@ -13,7 +13,7 @@ not_running=/tmp/monit_not_running_1
 alert_sent=/tmp/monit_not_running_2
 time="$(date --iso-8601=seconds)"
 
-if systemctl status monit | grep -q running; then
+if systemctl is-active --quiet monit.service; then
     echo "monit is running"
     echo $time
     if test -f "$alert_sent"; then

@@ -35,18 +35,18 @@
     enabled: yes
     daemon_reload: yes
 
-- name: Create cron job to email an alert if monit not running
+- name: Create healthcheck script to email an alert if monit not running
   template:
     src: monit_health_check.j2
     dest: /usr/local/bin/monit_health_check
     mode: 0744
 
-- name: Schedule monit health check
+- name: Schedule monit health check cron job
   cron:
     name: monit_health_check
     minute: "*/10" # every 10 minutes
     # use cronic to email if healthcheck itself fails
-    job: MAILTO={{ monit_admin_email }} /usr/local/bin/cronic /usr/local/bin/monit_health_check
+    job: "/usr/local/bin/cronic /usr/local/bin/monit_health_check"
 
 - name: add monit report to motd
   template:
